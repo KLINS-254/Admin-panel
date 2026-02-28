@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<script type="module">
+  // Import Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+
+  // Your Firebase config (same as user project)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCdX336VfLzIMZItn8eafwrPBlrBSKpxf0",
+    authDomain: "flutter-ai-playground-51023.firebaseapp.com",
+    projectId: "flutter-ai-playground-51023",
+    storageBucket: "flutter-ai-playground-51023.appspot.com",
+    messagingSenderId: "589068038917",
+    appId: "1:589068038917:web:b842384a52ec87c8213d6c"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.searchUser = async () => {
+    const code = document.getElementById('userCode').value.trim();
+    if (!code) return alert("Enter user code");
+
+    const userRef = doc(db, "users", code);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      document.getElementById('userName').innerText = data.name || "-";
+      document.getElementById('userBalance').value = data.balance || 0;
+      document.getElementById('userFound').style.display = 'block';
+      document.getElementById('currentUserCode').value = code;
+    } else {
+      alert("User not found");
+      document.getElementById('userFound').style.display = 'none';
+    }
+  };
+
+  window.updateBalance = async () => {
+    const code = document.getElementById('currentUserCode').value;
+    const amount = parseFloat(document.getElementById('userBalance').value);
+
+    if (!code || isNaN(amount)) return alert("Invalid data");
+
+    const userRef = doc(db, "users", code);
+    await setDoc(userRef, { balance: amount }, { merge: true });
+    alert(`Balance updated to KSH ${amount.toLocaleString()}`);
+  };
+</script>
+
+<style>
+body{font-family:Arial,sans-serif;padding:20px;background:#f4f6f9;}
+input, button{padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc;font-size:1rem;}
+button{cursor:pointer;background:#2a8cff;color:white;border:none;}
+#userFound{margin-top:20px;padding:15px;background:white;border-radius:12px;display:none;}
+</style>
+</head>
+<body>
+
+<h2>Admin Dashboard</h2>
+
+<div>
+  <label>User Unique Code:</label><br>
+  <input type="text" id="userCode" placeholder="Enter code">
+  <button onclick="searchUser()">Search</button>
+</div>
+
+<div id="userFound">
+  <h3>User Info</h3>
+  <p>Name: <span id="userName">-</span></p>
+  <label>Balance (KSH):</label><br>
+  <input type="number" id="userBalance">
+  <input type="hidden" id="currentUserCode">
+  <button onclick="updateBalance()">Update Balance</button>
+</div>
+
+</body>
+</html>
